@@ -14,11 +14,12 @@ CREATE TABLE cart (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     product_id INT REFERENCES products(id) ON DELETE CASCADE,
-    quantity INT NOT NULL
+    quantity INT NOT NULL,
+    UNIQUE (user_id, product_id)
 );
 
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    status TEXT
+    status TEXT CHECK (status IN ('created', 'confirmed', 'shipped', 'delivered', 'cancelled'))
 );

@@ -1,4 +1,14 @@
+from enum import Enum
+
 from pydantic import BaseModel, Field
+
+
+class OrderStatus(str, Enum):
+    created = "created"
+    confirmed = "confirmed"
+    shipped = "shipped"
+    delivered = "delivered"
+    cancelled = "cancelled"
 
 
 # REQUESTS
@@ -53,7 +63,9 @@ class StatusResponse(BaseModel):
 class OrderResponse(BaseModel):
     id: int = Field(example=1)
     user_id: int = Field(example=1)
-    status: str = Field(example="created")
+    status: OrderStatus = Field(example=OrderStatus.created)
 
 class ErrorResponse(BaseModel):
-    detail: str
+    detail: str = Field(
+        example="Error message"
+    )

@@ -23,16 +23,23 @@ class OrdersRepo:
         cur = conn.cursor()
 
         cur.execute("SELECT id,user_id,status FROM orders WHERE id=%s", (order_id,))
-        return cur.fetchone()
+
+        row = cur.fetchone()
+        conn.close()
+
+        return row
 
     def update_status(self, order_id, status):
         conn = get_connection()
         cur = conn.cursor()
 
         cur.execute(
-            "UPDATE orders SET status=%s WHERE id=%s",
+            "UPDATE orders SET status=%s WHERE id=%s RETURNING id, user_id, status",
             (status, order_id)
         )
 
+        row = cur.fetchone()
         conn.commit()
         conn.close()
+
+        return {"id": row[0], "status": row[2]}

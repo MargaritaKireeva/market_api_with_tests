@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
+from app.api.exceptions.product_exceptions import ProductNotFoundException
 from app.repositories.products_repo import ProductsRepo
 from app.services.products_service import ProductService
-from app.models.schemas import ProductCreate, ProductUpdate, ProductResponse, StatusResponse
+from app.models.schemas import ProductCreate, ProductUpdate, ProductResponse, StatusResponse, ErrorResponse
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -35,26 +36,22 @@ def get_all():
     }
 )
 def get(product_id: int):
-    product = service.get(product_id)
-
-    if not product:
+    try:
+        return service.get(product_id)
+    except ProductNotFoundException:
         raise HTTPException(
             status_code=404,
             detail="Product not found"
         )
 
-    return product
-
 
 @router.patch("/{product_id}",
               response_model=ProductResponse)
 def update(product_id: int, product: ProductUpdate):
-    result = service.update(product_id, product)
-
-    if not result:
+    try:
+        return service.update(product_id, product)
+    except ProductNotFoundException:
         raise HTTPException(404, "Product not found")
-
-    return result
 
 
 @router.delete(
@@ -62,5 +59,9 @@ def update(product_id: int, product: ProductUpdate):
     response_model=StatusResponse
 )
 def delete(product_id: int):
-    service.delete(product_id)
+    try:
+        service.delete(product_id)
+    except ProductNotFoundException:
+        raise HTTPException(404, "Product not found")
+
     return {"status": "deleted"}

@@ -66,6 +66,9 @@ class ProductsRepo:
         conn.commit()
         conn.close()
 
+        if not row:
+            return None
+
         return {"id": row[0], "name": row[1], "price": row[2]}
 
     def delete(self, product_id):

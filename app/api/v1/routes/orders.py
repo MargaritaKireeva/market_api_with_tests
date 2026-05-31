@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException
 
-from app.models.schemas import OrderResponse, StatusResponse
+from app.api.exceptions.cart_exceptions import CartEmptyException
+from app.api.exceptions.order_exceptions import OrderNotFoundException, InvalidOrderStatusError
+from app.models.schemas import OrderResponse, StatusResponse, ErrorResponse, OrderStatus
 from app.repositories.orders_repo import OrdersRepo
 from app.repositories.cart_repo import CartRepo
 from app.services.orders_service import OrdersService
@@ -12,34 +14,71 @@ service = OrdersService(OrdersRepo(), CartRepo())
 
 @router.post(
     "",
-    response_model=OrderResponse
+    response_model=OrderResponse,
+    responses={
+        400: {
+            "model": ErrorResponse,
+            "description": "Cart is empty"
+        }
+    }
 )
 def create_order(user_id: int):
-    order = service.create_order(user_id)
-
-    if not order:
+    try:
+        return service.create_order(user_id)
+    except CartEmptyException:
         raise HTTPException(400, "Cart is empty")
-
-    return order
 
 
 @router.get("/{order_id}",
-            response_model=OrderResponse)
+            response_model=OrderResponse,
+            responses={
+                404: {
+                    "model": ErrorResponse,
+                    "description": "Order not found"
+                }
+            })
 def get_order(order_id: int):
-    return service.get_order(order_id)
+    try:
+        return service.get_order(order_id)
+    except OrderNotFoundException:
+        raise HTTPException(404, "Order not found")
 
 
 @router.patch(
     "/{order_id}/status",
-    response_model=StatusResponse
+    response_model=StatusResponse,
+    responses={
+        404: {
+            "model": ErrorResponse,
+            "description": "Order not found"
+        },
+        422: {
+            "model": ErrorResponse,
+            "description": "Invalid status"
+        }
+    }
 )
 def update_status(order_id: int, status: str):
-    return service.update_status(order_id, status)
+    try:
+        return service.update_status(order_id, status)
+    except OrderNotFoundException:
+        raise HTTPException(404, "Order not found")
+    except InvalidOrderStatusError:
+        raise HTTPException(422, f"Invalid status. Allowed: {[s.value for s in OrderStatus]}")
 
 
 @router.post(
     "/{order_id}/cancel",
-    response_model=StatusResponse
+    response_model=StatusResponse,
+    responses={
+        404: {
+            "model": ErrorResponse,
+            "description": "Order not found"
+        }
+    }
 )
 def cancel(order_id: int):
-    return service.cancel(order_id)
+    try:
+        return service.cancel(order_id)
+    except OrderNotFoundException:
+        raise HTTPException(404, "Order not found")

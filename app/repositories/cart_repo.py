@@ -8,7 +8,8 @@ class CartRepo:
         cur = conn.cursor()
 
         cur.execute(
-            "INSERT INTO cart (user_id, product_id, quantity) VALUES (%s,%s,%s)",
+            "INSERT INTO cart (user_id, product_id, quantity) VALUES (%s,%s,%s) "
+            "ON CONFLICT (user_id, product_id) DO UPDATE SET quantity = cart.quantity + EXCLUDED.quantity",
             (user_id, product_id, quantity)
         )
 

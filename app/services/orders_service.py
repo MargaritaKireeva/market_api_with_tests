@@ -1,3 +1,8 @@
+from app.api.exceptions.cart_exceptions import CartEmptyException
+from app.api.exceptions.order_exceptions import OrderNotFoundException, InvalidOrderStatusError
+from app.models.schemas import OrderStatus
+
+
 class OrdersService:
 
     def __init__(self, orders_repo, cart_repo):
@@ -8,7 +13,7 @@ class OrdersService:
         cart_items = self.cart_repo.get(user_id)
 
         if not cart_items:
-            return None
+            raise CartEmptyException()
 
         order = self.orders_repo.create(user_id)
 
@@ -17,10 +22,30 @@ class OrdersService:
         return order
 
     def get_order(self, order_id: int):
-        return self.orders_repo.get(order_id)
+        order = self.orders_repo.get(order_id)
+
+        if not order:
+            raise OrderNotFoundException()
+
+        return order
 
     def update_status(self, order_id: int, status: str):
-        return self.orders_repo.update_status(order_id, status)
+        try:
+            parsed = OrderStatus(status)
+        except ValueError:
+            raise InvalidOrderStatusError()
+
+        order = self.orders_repo.get(order_id)
+
+        if not order:
+            raise OrderNotFoundException()
+
+        return self.orders_repo.update_status(order_id, parsed.value)
 
     def cancel(self, order_id: int):
+        order = self.orders_repo.get(order_id)
+
+        if not order:
+            raise OrderNotFoundException()
+
         return self.orders_repo.update_status(order_id, "cancelled")
