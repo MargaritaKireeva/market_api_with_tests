@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
 from app.api.exceptions.cart_exceptions import CartEmptyException
 from app.api.exceptions.order_exceptions import OrderNotFoundException, InvalidOrderStatusError
+from app.core.auth import get_current_user
 from app.models.schemas import OrderResponse, StatusResponse, ErrorResponse, OrderStatus
 from app.repositories.orders_repo import OrdersRepo
 from app.repositories.cart_repo import CartRepo
@@ -22,7 +23,7 @@ service = OrdersService(OrdersRepo(), CartRepo())
         }
     }
 )
-def create_order(user_id: int):
+def create_order(user_id: int = Depends(get_current_user)):
     try:
         return service.create_order(user_id)
     except CartEmptyException:
@@ -37,9 +38,12 @@ def create_order(user_id: int):
                     "description": "Order not found"
                 }
             })
-def get_order(order_id: int):
+def get_order(order_id: int, user_id: int = Depends(get_current_user)):
     try:
-        return service.get_order(order_id)
+        order = service.get_order(order_id)
+        if order["user_id"] != user_id:
+            raise OrderNotFoundException()
+        return order
     except OrderNotFoundException:
         raise HTTPException(404, "Order not found")
 
@@ -58,8 +62,11 @@ def get_order(order_id: int):
         }
     }
 )
-def update_status(order_id: int, status: str):
+def update_status(order_id: int, status: str, user_id: int = Depends(get_current_user)):
     try:
+        order = service.get_order(order_id)
+        if order["user_id"] != user_id:
+            raise OrderNotFoundException()
         return service.update_status(order_id, status)
     except OrderNotFoundException:
         raise HTTPException(404, "Order not found")
@@ -77,8 +84,11 @@ def update_status(order_id: int, status: str):
         }
     }
 )
-def cancel(order_id: int):
+def cancel(order_id: int, user_id: int = Depends(get_current_user)):
     try:
+        order = service.get_order(order_id)
+        if order["user_id"] != user_id:
+            raise OrderNotFoundException()
         return service.cancel(order_id)
     except OrderNotFoundException:
         raise HTTPException(404, "Order not found")

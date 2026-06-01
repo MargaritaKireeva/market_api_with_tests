@@ -1,7 +1,8 @@
-from psycopg2.errors import UniqueViolation
 from passlib.hash import bcrypt
+import psycopg2
 
 from app.api.exceptions.auth_exceptions import UserAlreadyExistsError, InvalidCredentialsError
+from app.core.auth import create_token
 
 
 class AuthService:
@@ -12,7 +13,7 @@ class AuthService:
     def register(self, email: str, password: str):
         try:
             return self.repo.create(email, bcrypt.hash(password))
-        except UniqueViolation:
+        except psycopg2.errors.UniqueViolation:
             raise UserAlreadyExistsError()
 
     def login(self, email: str, password: str):
@@ -21,7 +22,7 @@ class AuthService:
         if not user:
             raise InvalidCredentialsError()
 
-        if not bcrypt.verify(password, user[2]):
+        if not bcrypt.verify(password, user["password"]):
             raise InvalidCredentialsError()
 
-        return {"token": f"token-{user[0]}"}
+        return {"token": create_token(user['id'])}

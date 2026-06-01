@@ -1,9 +1,9 @@
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 
-class OrderStatus(str, Enum):
+class OrderStatus(Enum):
     created = "created"
     confirmed = "confirmed"
     shipped = "shipped"
@@ -14,29 +14,28 @@ class OrderStatus(str, Enum):
 # REQUESTS
 
 class RegisterRequest(BaseModel):
-    email: str = Field(example="user@mail.com")
-    password: str = Field(example="secret123")
+    email: EmailStr = Field(example="user@mail.com")
+    password: str = Field(min_length=6, example="secret123")
 
 
 class LoginRequest(BaseModel):
-    email: str = Field(example="user@mail.com")
+    email: EmailStr = Field(example="user@mail.com")
     password: str = Field(example="secret123")
 
 
 class ProductCreate(BaseModel):
     name: str = Field(example="iPhone 15")
-    price: float = Field(example=999.99)
+    price: float = Field(gt=0, example=999.99)
 
 
 class ProductUpdate(BaseModel):
     name: str | None = Field(default=None, example="iPhone 15 Pro")
-    price: float | None = Field(default=None, example=1299.99)
+    price: float | None = Field(default=None, gt=0, example=1299.99)
 
 
 class CartAdd(BaseModel):
-    user_id: int = Field(example=1)
     product_id: int = Field(example=1)
-    quantity: int = Field(example=2)
+    quantity: int = Field(gt=0, example=2)
 
 
 # RESPONSES
@@ -64,6 +63,7 @@ class OrderResponse(BaseModel):
     id: int = Field(example=1)
     user_id: int = Field(example=1)
     status: OrderStatus = Field(example=OrderStatus.created)
+
 
 class ErrorResponse(BaseModel):
     detail: str = Field(

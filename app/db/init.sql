@@ -10,6 +10,11 @@ CREATE TABLE products (
     price FLOAT NOT NULL
 );
 
+INSERT INTO products (name, price) VALUES
+    ('iPhone 15', 999.99),
+    ('AirPods Pro', 249.99),
+    ('MacBook Air', 1299.99);
+
 CREATE TABLE cart (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,

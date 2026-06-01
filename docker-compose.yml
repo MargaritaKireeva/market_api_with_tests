@@ -9,10 +9,11 @@ services:
     depends_on:
       - db
     environment:
+      SECRET_KEY: ${SECRET_KEY}
       DB_HOST: db
-      DB_NAME: appdb
-      DB_USER: user
-      DB_PASS: pass
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
     volumes:
       - .:/app
 
