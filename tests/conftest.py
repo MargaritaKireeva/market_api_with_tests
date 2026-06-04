@@ -2,7 +2,7 @@ import pytest
 import requests
 import os
 
-from app.models.schemas import RegisterRequest
+from app.models.schemas import RegisterRequest, LoginRequest
 from app.repositories.users_repo import UsersRepo
 
 user_repo = UsersRepo()
@@ -21,14 +21,6 @@ def http_client():
         yield session
 
 
-# @pytest.fixture
-# def clean_users_after_test():
-#     created_ids = []
-#     yield created_ids
-#     for user_id in created_ids:
-#         user_repo.delete_by_id(user_id)
-
-
 @pytest.fixture(autouse=True, scope="function")
 def clean_users_orders_carts():
     user_repo.delete_all()
@@ -43,3 +35,23 @@ def registered_user(http_client, base_url):
     data = response.json()
     data["password"] = password
     return data
+
+
+@pytest.fixture
+def auth_header(http_client, base_url, registered_user):
+    body = LoginRequest(
+        email=registered_user["email"],
+        password=registered_user["password"]
+    ).model_dump()
+    response = http_client.post(f"{base_url}/auth/login", json=body)
+    token = response.json()["token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def sample_product(http_client, base_url):
+    response = http_client.post(
+        f"{base_url}/products",
+        json={"name": "Test Product", "price": 100.0}
+    )
+    return response.json()
