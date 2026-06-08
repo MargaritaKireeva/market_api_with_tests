@@ -55,3 +55,26 @@ def sample_product(http_client, base_url):
         json={"name": "Test Product", "price": 100.0}
     )
     return response.json()
+
+
+@pytest.fixture
+def cart_with_sample_product(base_url, http_client, sample_product, auth_header):
+    http_client.post(
+        f"{base_url}/cart/add",
+        json={"product_id": sample_product["id"], "quantity": 2},
+        headers=auth_header
+    )
+
+
+@pytest.fixture
+def second_auth_header(http_client, base_url):
+    http_client.post(
+        f"{base_url}/auth/register",
+        json=RegisterRequest(email="user2@mail.ru", password="password").model_dump()
+    )
+    response = http_client.post(
+        f"{base_url}/auth/login",
+        json=LoginRequest(email="user2@mail.ru", password="password").model_dump()
+    )
+    token = response.json()["token"]
+    return {"Authorization": f"Bearer {token}"}
