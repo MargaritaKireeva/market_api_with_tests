@@ -17,6 +17,10 @@ service = CartService(CartRepo(), ProductsRepo())
     "/add",
     response_model=StatusResponse,
     responses={
+        401: {
+            "model": ErrorResponse,
+            "description": "Invalid or expired token"
+        },
         404: {
             "model": ErrorResponse,
             "description": "Product not found"
@@ -35,6 +39,10 @@ def add(item: CartAdd, user_id: int = Depends(get_current_user)):
     "",
     response_model=list[dict],
     responses={
+        401: {
+            "model": ErrorResponse,
+            "description": "Invalid or expired token"
+        },
         404: {
             "model": ErrorResponse,
             "description": "Cart is empty"
@@ -51,6 +59,14 @@ def get(user_id: int = Depends(get_current_user)):
         )
 
 
-@router.delete("/remove")
+@router.delete(
+    "/remove",
+    responses={
+        401: {
+            "model": ErrorResponse,
+            "description": "Invalid or expired token"
+        }
+    }
+)
 def clear(user_id: int = Depends(get_current_user)):
     return service.clear_cart(user_id)

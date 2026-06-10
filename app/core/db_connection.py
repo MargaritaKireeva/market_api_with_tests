@@ -1,4 +1,8 @@
 import os
+
+os.environ["PGCLIENTENCODING"] = "UTF8"
+os.environ["LANG"] = "en_US.UTF-8"
+
 from dotenv import load_dotenv
 import psycopg2
 

@@ -20,6 +20,10 @@ service = OrdersService(OrdersRepo(), CartRepo())
         400: {
             "model": ErrorResponse,
             "description": "Cart is empty"
+        },
+        401: {
+            "model": ErrorResponse,
+            "description": "Invalid or expired token"
         }
     }
 )
@@ -33,6 +37,10 @@ def create_order(user_id: int = Depends(get_current_user)):
 @router.get("/{order_id}",
             response_model=OrderResponse,
             responses={
+                401: {
+                    "model": ErrorResponse,
+                    "description": "Invalid or expired token"
+                },
                 404: {
                     "model": ErrorResponse,
                     "description": "Order not found"
@@ -52,6 +60,10 @@ def get_order(order_id: int, user_id: int = Depends(get_current_user)):
     "/{order_id}/status",
     response_model=StatusResponse,
     responses={
+        401: {
+            "model": ErrorResponse,
+            "description": "Invalid or expired token"
+        },
         404: {
             "model": ErrorResponse,
             "description": "Order not found"
@@ -78,6 +90,10 @@ def update_status(order_id: int, status: str, user_id: int = Depends(get_current
     "/{order_id}/cancel",
     response_model=StatusResponse,
     responses={
+        401: {
+            "model": ErrorResponse,
+            "description": "Invalid or expired token"
+        },
         404: {
             "model": ErrorResponse,
             "description": "Order not found"
