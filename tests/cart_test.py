@@ -68,7 +68,7 @@ def test_get_empty_cart(http_client, base_url, auth_header):
     assert response.json()["detail"] == "Cart is empty"
 
 
-def test_get_cart_with_invalid_cart(http_client, base_url, sample_product, auth_header):
+def test_get_cart_with_invalid_token(http_client, base_url, sample_product, auth_header):
     http_client.post(
         f"{base_url}/cart/add",
         json={"product_id": sample_product["id"], "quantity": 1},

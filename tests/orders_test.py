@@ -28,7 +28,7 @@ def test_create_order_empty_cart(base_url, http_client, auth_header, registered_
     response = http_client.post(f"{base_url}/orders", headers=auth_header)
     data = response.json()
 
-    assert response.status_code == 400
+    assert response.status_code == 409
     assert data["detail"] == "Cart is empty"
 
 
